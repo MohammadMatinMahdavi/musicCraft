@@ -11,14 +11,13 @@ export const useMusicStore = defineStore('music', {
     intervalId: null,
     currentTrack: null,
     searchResults: null,
-    // لیست پخش سراسری را اضافه کردیم
     playlist: [], 
-    // ایندکس آهنگ فعلی را در لیست پخش ذخیره می‌کنیم
     currentTrackIndex: -1, 
+    // آدرس اصلی بک‌اند را اینجا تعریف کنید
+    BASE_URL: 'https://backend-deadpool.kubarcloud.net', 
   }),
   actions: {
     async playTrack(trackData, playlist = []) {
-      // اگر آهنگ در حال پخش بود، متوقفش کن
       if (this.sound) {
         this.sound.unload();
       }
@@ -27,7 +26,6 @@ export const useMusicStore = defineStore('music', {
       }
 
       this.currentTrack = trackData;
-      // لیست پخش و ایندکس را به روز می‌کنیم
       this.playlist = playlist.length > 0 ? playlist : this.playlist;
       this.currentTrackIndex = this.playlist.findIndex(track => track.track_id === trackData.track_id);
       
@@ -37,7 +35,8 @@ export const useMusicStore = defineStore('music', {
 
       try {
         const query = `${trackData.artist}+${trackData.track_name}`;
-        const response = await axios.get('http://play.9craft.ir:5585/api/v1/get_audio_link', {
+        // از متغیر BASE_URL استفاده کنید
+        const response = await axios.get(`${this.BASE_URL}/api/v1/get_audio_link`, {
           params: { query_text: query },
         });
 
@@ -74,12 +73,10 @@ export const useMusicStore = defineStore('music', {
       }
     },
     playNextTrack() {
-      // منطق پخش آهنگ بعدی را پیاده‌سازی می‌کنیم
       if (this.currentTrackIndex !== -1 && this.currentTrackIndex < this.playlist.length - 1) {
         const nextTrack = this.playlist[this.currentTrackIndex + 1];
         this.playTrack(nextTrack);
       } else {
-        // اگر به انتهای لیست رسیدیم، پخش را متوقف می‌کنیم
         this.sound.stop();
         this.isPlaying = false;
       }
@@ -105,7 +102,8 @@ export const useMusicStore = defineStore('music', {
       }
       
       try {
-        const response = await axios.get(`http://play.9craft.ir:5585/api/v1/search?q=${encodeURIComponent(query)}`);
+        // از متغیر BASE_URL استفاده کنید
+        const response = await axios.get(`${this.BASE_URL}/api/v1/search?q=${encodeURIComponent(query)}`);
         this.searchResults = response.data;
       } catch (error) {
         console.error('Error searching music:', error);
