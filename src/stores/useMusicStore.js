@@ -11,10 +11,12 @@ export const useMusicStore = defineStore('music', {
     intervalId: null,
     currentTrack: null,
     searchResults: null,
-    playlist: [], 
-    currentTrackIndex: -1, 
-    // آدرس اصلی بک‌اند را اینجا تعریف کنید
+    playlist: [],
+    currentTrackIndex: -1,
+    // آدرس اصلی بک‌اند برای APIها
     BASE_URL: 'https://backend-deadpool.kubarcloud.net', 
+    // آدرس CDN برای پخش فایل‌های صوتی
+    CDN_URL: 'https://craft-deadpool.kubarcloud.net',
   }),
   actions: {
     async playTrack(trackData, playlist = []) {
@@ -35,12 +37,14 @@ export const useMusicStore = defineStore('music', {
 
       try {
         const query = `${trackData.artist}+${trackData.track_name}`;
-        // از متغیر BASE_URL استفاده کنید
+        // درخواست به API برای دریافت path فایل
         const response = await axios.get(`${this.BASE_URL}/api/v1/get_audio_link`, {
           params: { query_text: query },
         });
 
-        const audioLink = response.data.audio_link;
+        // حالا CDN_URL و Path رو ترکیب می‌کنیم تا لینک کامل ساخته بشه
+        // توجه: نام متغیر در پاسخ API از audio_link به path تغییر کرده است.
+        const audioLink = `${this.CDN_URL}${response.data.path}`;
 
         this.sound = new Howl({
           src: [audioLink],
@@ -102,7 +106,6 @@ export const useMusicStore = defineStore('music', {
       }
       
       try {
-        // از متغیر BASE_URL استفاده کنید
         const response = await axios.get(`${this.BASE_URL}/api/v1/search?q=${encodeURIComponent(query)}`);
         this.searchResults = response.data;
       } catch (error) {
