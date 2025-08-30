@@ -17,7 +17,7 @@
             <h4 class="text-sm md:text-base font-semibold text-white truncate">{{ track.track_name }}</h4>
             <p class="text-xs md:text-sm text-zinc-400 truncate">{{ track.artist }}</p>
           </div>
-          <button class="absolute bottom-4 right-4 md:bottom-5 md:right-5 w-10 h-10 bg-emerald-500 rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-in-out" @click="playTrack(track, tracksByGenre)">
+          <button class="absolute bottom-4 right-4 md:bottom-5 md:right-5 w-10 h-10 bg-emerald-500 rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-in-out" @click="playTrack(track)">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5">
               <path d="M6 3.5L18 12L6 20.5V3.5Z" fill="white"/>
             </svg>
@@ -66,6 +66,7 @@ export default {
   },
   async mounted() {
     try {
+      // استفاده از BASE_URL از استور
       const response = await axios.get(`${this.musicStore.BASE_URL}/api/v1/genres`);
       this.tracks = response.data;
       this.groupTracksByGenre();
@@ -88,8 +89,17 @@ export default {
       });
       this.groupedTracks = grouped;
     },
-    playTrack(track, playlist) {
-      this.musicStore.playTrack(track, playlist);
+    playTrack(track) {
+      const trackData = {
+        track_name: track.track_name,
+        artist: track.artist || track.artist_name,
+        image: track.image,
+        track_id: track.track_id,
+      };
+      
+      const playlist = this.groupedTracks[track.genre] || [];
+      
+      this.musicStore.playTrack(trackData, playlist);
     },
     setupLazyLoad() {
       if (this.observer) {
